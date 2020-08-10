@@ -10,16 +10,14 @@ cpdef dict fertilizerCount(list areas, list items, list units, list values):
 
     cdef item = list()
 
-    #total = dict.fromkeys(total, 0)
     for item in combined:
         item = '_'.join(item[0:3])
-        #count[item] = count.get(item,0)+1
         total[item] = 0
 
     for item in combined:
         key = '_'.join(item[0:3])
         if isinstance(item[3], float):
-            total[key]  += item[3]
+            total[key] += item[3]
 
     return total
 
