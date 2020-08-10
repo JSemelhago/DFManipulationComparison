@@ -907,6 +907,44 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg
 #define __Pyx_PyObject_Call(func, arg, kw) PyObject_Call(func, arg, kw)
 #endif
 
+/* GetItemInt.proto */
+#define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_Fast(o, (Py_ssize_t)i, is_list, wraparound, boundscheck) :\
+    (is_list ? (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL) :\
+               __Pyx_GetItemInt_Generic(o, to_py_func(i))))
+#define __Pyx_GetItemInt_List(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_List_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
+    (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL))
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
+                                                              int wraparound, int boundscheck);
+#define __Pyx_GetItemInt_Tuple(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_Tuple_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
+    (PyErr_SetString(PyExc_IndexError, "tuple index out of range"), (PyObject*)NULL))
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
+                                                              int wraparound, int boundscheck);
+static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j);
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
+                                                     int is_list, int wraparound, int boundscheck);
+
+/* IncludeStringH.proto */
+#include <string.h>
+
+/* BytesEquals.proto */
+static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals);
+
+/* UnicodeEquals.proto */
+static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals);
+
+/* StrEquals.proto */
+#if PY_MAJOR_VERSION >= 3
+#define __Pyx_PyString_Equals __Pyx_PyUnicode_Equals
+#else
+#define __Pyx_PyString_Equals __Pyx_PyBytes_Equals
+#endif
+
 /* ListCompAppend.proto */
 #if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
 static CYTHON_INLINE int __Pyx_ListComp_Append(PyObject* list, PyObject* x) {
@@ -922,6 +960,37 @@ static CYTHON_INLINE int __Pyx_ListComp_Append(PyObject* list, PyObject* x) {
 }
 #else
 #define __Pyx_ListComp_Append(L,x) PyList_Append(L,x)
+#endif
+
+/* StringJoin.proto */
+#if PY_MAJOR_VERSION < 3
+#define __Pyx_PyString_Join __Pyx_PyBytes_Join
+#define __Pyx_PyBaseString_Join(s, v) (PyUnicode_CheckExact(s) ? PyUnicode_Join(s, v) : __Pyx_PyBytes_Join(s, v))
+#else
+#define __Pyx_PyString_Join PyUnicode_Join
+#define __Pyx_PyBaseString_Join PyUnicode_Join
+#endif
+#if CYTHON_COMPILING_IN_CPYTHON
+    #if PY_MAJOR_VERSION < 3
+    #define __Pyx_PyBytes_Join _PyString_Join
+    #else
+    #define __Pyx_PyBytes_Join _PyBytes_Join
+    #endif
+#else
+static CYTHON_INLINE PyObject* __Pyx_PyBytes_Join(PyObject* sep, PyObject* values);
+#endif
+
+/* SliceObject.proto */
+static CYTHON_INLINE PyObject* __Pyx_PyObject_GetSlice(
+        PyObject* obj, Py_ssize_t cstart, Py_ssize_t cstop,
+        PyObject** py_start, PyObject** py_stop, PyObject** py_slice,
+        int has_cstart, int has_cstop, int wraparound);
+
+/* ObjectGetItem.proto */
+#if CYTHON_USE_TYPE_SLOTS
+static CYTHON_INLINE PyObject *__Pyx_PyObject_GetItem(PyObject *obj, PyObject* key);
+#else
+#define __Pyx_PyObject_GetItem(obj, key)  PyObject_GetItem(obj, key)
 #endif
 
 /* RaiseArgTupleInvalid.proto */
@@ -1060,45 +1129,58 @@ static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 
 
 /* Module declarations from 'fertilizerprocessor' */
-static PyObject *__pyx_f_19fertilizerprocessor_fertilizerCount(PyObject *, PyObject *, PyObject *, int __pyx_skip_dispatch); /*proto*/
+static PyObject *__pyx_f_19fertilizerprocessor_fertilizerCount(PyObject *, PyObject *, PyObject *, PyObject *, int __pyx_skip_dispatch); /*proto*/
 #define __Pyx_MODULE_NAME "fertilizerprocessor"
 extern int __pyx_module_is_main_fertilizerprocessor;
 int __pyx_module_is_main_fertilizerprocessor = 0;
 
 /* Implementation of 'fertilizerprocessor' */
 static PyObject *__pyx_builtin_zip;
+static const char __pyx_k_[] = "_";
 static const char __pyx_k_zip[] = "zip";
+static const char __pyx_k_join[] = "join";
 static const char __pyx_k_main[] = "__main__";
 static const char __pyx_k_name[] = "__name__";
 static const char __pyx_k_test[] = "__test__";
 static const char __pyx_k_areas[] = "areas";
 static const char __pyx_k_items[] = "items";
-static const char __pyx_k_value[] = "value";
+static const char __pyx_k_units[] = "units";
+static const char __pyx_k_tonnes[] = "tonnes";
+static const char __pyx_k_values[] = "values";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
+static PyObject *__pyx_n_s_;
 static PyObject *__pyx_n_s_areas;
 static PyObject *__pyx_n_s_cline_in_traceback;
 static PyObject *__pyx_n_s_items;
+static PyObject *__pyx_n_s_join;
 static PyObject *__pyx_n_s_main;
 static PyObject *__pyx_n_s_name;
 static PyObject *__pyx_n_s_test;
-static PyObject *__pyx_n_s_value;
+static PyObject *__pyx_n_s_tonnes;
+static PyObject *__pyx_n_s_units;
+static PyObject *__pyx_n_s_values;
 static PyObject *__pyx_n_s_zip;
-static PyObject *__pyx_pf_19fertilizerprocessor_fertilizerCount(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_areas, PyObject *__pyx_v_items, PyObject *__pyx_v_value); /* proto */
+static PyObject *__pyx_pf_19fertilizerprocessor_fertilizerCount(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_areas, PyObject *__pyx_v_items, PyObject *__pyx_v_units, PyObject *__pyx_v_values); /* proto */
+static PyObject *__pyx_int_0;
+static PyObject *__pyx_int_3;
+static PyObject *__pyx_slice__2;
 /* Late includes */
 
 /* "fertilizerprocessor.pyx":4
  * #cdef before any declaration (cpdef for functions and int/float... in parameters)
  * 
- * cpdef list fertilizerCount(list areas, list items, list value):             # <<<<<<<<<<<<<<
- *     cdef count = dict()
+ * cpdef dict fertilizerCount(list areas, list items, list units, list values):             # <<<<<<<<<<<<<<
+ *     cdef total = dict()
  *     cdef combined = list()
  */
 
 static PyObject *__pyx_pw_19fertilizerprocessor_1fertilizerCount(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_f_19fertilizerprocessor_fertilizerCount(PyObject *__pyx_v_areas, PyObject *__pyx_v_items, PyObject *__pyx_v_value, CYTHON_UNUSED int __pyx_skip_dispatch) {
-  CYTHON_UNUSED PyObject *__pyx_v_count = 0;
+static PyObject *__pyx_f_19fertilizerprocessor_fertilizerCount(PyObject *__pyx_v_areas, PyObject *__pyx_v_items, PyObject *__pyx_v_units, PyObject *__pyx_v_values, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  PyObject *__pyx_v_total = 0;
   PyObject *__pyx_v_combined = 0;
-  PyObject *__pyx_v_a = NULL;
+  PyObject *__pyx_v_item = 0;
+  PyObject *__pyx_v_key = NULL;
+  PyObject *__pyx_v_row = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -1106,6 +1188,10 @@ static PyObject *__pyx_f_19fertilizerprocessor_fertilizerCount(PyObject *__pyx_v
   PyObject *__pyx_t_3 = NULL;
   Py_ssize_t __pyx_t_4;
   PyObject *(*__pyx_t_5)(PyObject *);
+  int __pyx_t_6;
+  int __pyx_t_7;
+  PyObject *__pyx_t_8 = NULL;
+  PyObject *__pyx_t_9 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -1113,22 +1199,22 @@ static PyObject *__pyx_f_19fertilizerprocessor_fertilizerCount(PyObject *__pyx_v
 
   /* "fertilizerprocessor.pyx":5
  * 
- * cpdef list fertilizerCount(list areas, list items, list value):
- *     cdef count = dict()             # <<<<<<<<<<<<<<
+ * cpdef dict fertilizerCount(list areas, list items, list units, list values):
+ *     cdef total = dict()             # <<<<<<<<<<<<<<
  *     cdef combined = list()
  * 
  */
   __pyx_t_1 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_v_count = __pyx_t_1;
+  __pyx_v_total = __pyx_t_1;
   __pyx_t_1 = 0;
 
   /* "fertilizerprocessor.pyx":6
- * cpdef list fertilizerCount(list areas, list items, list value):
- *     cdef count = dict()
+ * cpdef dict fertilizerCount(list areas, list items, list units, list values):
+ *     cdef total = dict()
  *     cdef combined = list()             # <<<<<<<<<<<<<<
  * 
- * 
+ *     #Only use tonnes, not USD
  */
   __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 6, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -1137,14 +1223,14 @@ static PyObject *__pyx_f_19fertilizerprocessor_fertilizerCount(PyObject *__pyx_v
 
   /* "fertilizerprocessor.pyx":9
  * 
+ *     #Only use tonnes, not USD
+ *     combined = [list(row) for row in zip(areas,items,units,values) if row[2]=='tonnes']             # <<<<<<<<<<<<<<
  * 
- *     combined = [list(a) for a in zip(areas,items,value)]             # <<<<<<<<<<<<<<
- * 
- *     # cdef item
+ *     cdef item = list()
  */
   __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 9, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 9, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 9, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_v_areas);
   __Pyx_GIVEREF(__pyx_v_areas);
@@ -1152,9 +1238,12 @@ static PyObject *__pyx_f_19fertilizerprocessor_fertilizerCount(PyObject *__pyx_v
   __Pyx_INCREF(__pyx_v_items);
   __Pyx_GIVEREF(__pyx_v_items);
   PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_v_items);
-  __Pyx_INCREF(__pyx_v_value);
-  __Pyx_GIVEREF(__pyx_v_value);
-  PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_v_value);
+  __Pyx_INCREF(__pyx_v_units);
+  __Pyx_GIVEREF(__pyx_v_units);
+  PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_v_units);
+  __Pyx_INCREF(__pyx_v_values);
+  __Pyx_GIVEREF(__pyx_v_values);
+  PyTuple_SET_ITEM(__pyx_t_2, 3, __pyx_v_values);
   __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_zip, __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 9, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -1198,35 +1287,254 @@ static PyObject *__pyx_f_19fertilizerprocessor_fertilizerCount(PyObject *__pyx_v
       }
       __Pyx_GOTREF(__pyx_t_3);
     }
-    __Pyx_XDECREF_SET(__pyx_v_a, __pyx_t_3);
+    __Pyx_XDECREF_SET(__pyx_v_row, __pyx_t_3);
     __pyx_t_3 = 0;
-    __pyx_t_3 = PySequence_List(__pyx_v_a); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 9, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_row, 2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 9, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_3))) __PYX_ERR(0, 9, __pyx_L1_error)
+    __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_3, __pyx_n_s_tonnes, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 9, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    if (__pyx_t_6) {
+      __pyx_t_3 = PySequence_List(__pyx_v_row); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 9, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_3))) __PYX_ERR(0, 9, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    }
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF_SET(__pyx_v_combined, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "fertilizerprocessor.pyx":16
- *     #     item = '/'.join(item)
- *     #     count[item] = count.get(item,0)+1
- *     return combined             # <<<<<<<<<<<<<<
+  /* "fertilizerprocessor.pyx":11
+ *     combined = [list(row) for row in zip(areas,items,units,values) if row[2]=='tonnes']
+ * 
+ *     cdef item = list()             # <<<<<<<<<<<<<<
+ * 
+ *     #total = dict.fromkeys(total, 0)
+ */
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 11, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_v_item = __pyx_t_1;
+  __pyx_t_1 = 0;
+
+  /* "fertilizerprocessor.pyx":14
+ * 
+ *     #total = dict.fromkeys(total, 0)
+ *     for item in combined:             # <<<<<<<<<<<<<<
+ *         item = '_'.join(item[0:3])
+ *         #count[item] = count.get(item,0)+1
+ */
+  if (likely(PyList_CheckExact(__pyx_v_combined)) || PyTuple_CheckExact(__pyx_v_combined)) {
+    __pyx_t_1 = __pyx_v_combined; __Pyx_INCREF(__pyx_t_1); __pyx_t_4 = 0;
+    __pyx_t_5 = NULL;
+  } else {
+    __pyx_t_4 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_combined); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 14, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_5 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 14, __pyx_L1_error)
+  }
+  for (;;) {
+    if (likely(!__pyx_t_5)) {
+      if (likely(PyList_CheckExact(__pyx_t_1))) {
+        if (__pyx_t_4 >= PyList_GET_SIZE(__pyx_t_1)) break;
+        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+        __pyx_t_2 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_4); __Pyx_INCREF(__pyx_t_2); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 14, __pyx_L1_error)
+        #else
+        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 14, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        #endif
+      } else {
+        if (__pyx_t_4 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
+        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+        __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_4); __Pyx_INCREF(__pyx_t_2); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 14, __pyx_L1_error)
+        #else
+        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 14, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        #endif
+      }
+    } else {
+      __pyx_t_2 = __pyx_t_5(__pyx_t_1);
+      if (unlikely(!__pyx_t_2)) {
+        PyObject* exc_type = PyErr_Occurred();
+        if (exc_type) {
+          if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
+          else __PYX_ERR(0, 14, __pyx_L1_error)
+        }
+        break;
+      }
+      __Pyx_GOTREF(__pyx_t_2);
+    }
+    __Pyx_DECREF_SET(__pyx_v_item, __pyx_t_2);
+    __pyx_t_2 = 0;
+
+    /* "fertilizerprocessor.pyx":15
+ *     #total = dict.fromkeys(total, 0)
+ *     for item in combined:
+ *         item = '_'.join(item[0:3])             # <<<<<<<<<<<<<<
+ *         #count[item] = count.get(item,0)+1
+ *         total[item] = 0
+ */
+    __pyx_t_2 = __Pyx_PyObject_GetSlice(__pyx_v_item, 0, 3, NULL, NULL, &__pyx_slice__2, 1, 1, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 15, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_3 = __Pyx_PyString_Join(__pyx_n_s_, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 15, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF_SET(__pyx_v_item, __pyx_t_3);
+    __pyx_t_3 = 0;
+
+    /* "fertilizerprocessor.pyx":17
+ *         item = '_'.join(item[0:3])
+ *         #count[item] = count.get(item,0)+1
+ *         total[item] = 0             # <<<<<<<<<<<<<<
+ * 
+ *     for item in combined:
+ */
+    if (unlikely(PyObject_SetItem(__pyx_v_total, __pyx_v_item, __pyx_int_0) < 0)) __PYX_ERR(0, 17, __pyx_L1_error)
+
+    /* "fertilizerprocessor.pyx":14
+ * 
+ *     #total = dict.fromkeys(total, 0)
+ *     for item in combined:             # <<<<<<<<<<<<<<
+ *         item = '_'.join(item[0:3])
+ *         #count[item] = count.get(item,0)+1
+ */
+  }
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "fertilizerprocessor.pyx":19
+ *         total[item] = 0
+ * 
+ *     for item in combined:             # <<<<<<<<<<<<<<
+ *         key = '_'.join(item[0:3])
+ *         if isinstance(item[3], float):
+ */
+  if (likely(PyList_CheckExact(__pyx_v_combined)) || PyTuple_CheckExact(__pyx_v_combined)) {
+    __pyx_t_1 = __pyx_v_combined; __Pyx_INCREF(__pyx_t_1); __pyx_t_4 = 0;
+    __pyx_t_5 = NULL;
+  } else {
+    __pyx_t_4 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_combined); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 19, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_5 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 19, __pyx_L1_error)
+  }
+  for (;;) {
+    if (likely(!__pyx_t_5)) {
+      if (likely(PyList_CheckExact(__pyx_t_1))) {
+        if (__pyx_t_4 >= PyList_GET_SIZE(__pyx_t_1)) break;
+        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+        __pyx_t_3 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_4); __Pyx_INCREF(__pyx_t_3); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 19, __pyx_L1_error)
+        #else
+        __pyx_t_3 = PySequence_ITEM(__pyx_t_1, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 19, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        #endif
+      } else {
+        if (__pyx_t_4 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
+        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+        __pyx_t_3 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_4); __Pyx_INCREF(__pyx_t_3); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 19, __pyx_L1_error)
+        #else
+        __pyx_t_3 = PySequence_ITEM(__pyx_t_1, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 19, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        #endif
+      }
+    } else {
+      __pyx_t_3 = __pyx_t_5(__pyx_t_1);
+      if (unlikely(!__pyx_t_3)) {
+        PyObject* exc_type = PyErr_Occurred();
+        if (exc_type) {
+          if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
+          else __PYX_ERR(0, 19, __pyx_L1_error)
+        }
+        break;
+      }
+      __Pyx_GOTREF(__pyx_t_3);
+    }
+    __Pyx_DECREF_SET(__pyx_v_item, __pyx_t_3);
+    __pyx_t_3 = 0;
+
+    /* "fertilizerprocessor.pyx":20
+ * 
+ *     for item in combined:
+ *         key = '_'.join(item[0:3])             # <<<<<<<<<<<<<<
+ *         if isinstance(item[3], float):
+ *             total[key]  += item[3]
+ */
+    __pyx_t_3 = __Pyx_PyObject_GetSlice(__pyx_v_item, 0, 3, NULL, NULL, &__pyx_slice__2, 1, 1, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 20, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_2 = __Pyx_PyString_Join(__pyx_n_s_, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 20, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_XDECREF_SET(__pyx_v_key, ((PyObject*)__pyx_t_2));
+    __pyx_t_2 = 0;
+
+    /* "fertilizerprocessor.pyx":21
+ *     for item in combined:
+ *         key = '_'.join(item[0:3])
+ *         if isinstance(item[3], float):             # <<<<<<<<<<<<<<
+ *             total[key]  += item[3]
+ * 
+ */
+    __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_item, 3, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 21, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_6 = PyFloat_Check(__pyx_t_2); 
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_7 = (__pyx_t_6 != 0);
+    if (__pyx_t_7) {
+
+      /* "fertilizerprocessor.pyx":22
+ *         key = '_'.join(item[0:3])
+ *         if isinstance(item[3], float):
+ *             total[key]  += item[3]             # <<<<<<<<<<<<<<
+ * 
+ *     return total
+ */
+      __Pyx_INCREF(__pyx_v_key);
+      __pyx_t_8 = __pyx_v_key;
+      __pyx_t_2 = __Pyx_PyObject_GetItem(__pyx_v_total, __pyx_t_8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 22, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_item, 3, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 22, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_9 = PyNumber_InPlaceAdd(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 22, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_9);
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      if (unlikely(PyObject_SetItem(__pyx_v_total, __pyx_t_8, __pyx_t_9) < 0)) __PYX_ERR(0, 22, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+
+      /* "fertilizerprocessor.pyx":21
+ *     for item in combined:
+ *         key = '_'.join(item[0:3])
+ *         if isinstance(item[3], float):             # <<<<<<<<<<<<<<
+ *             total[key]  += item[3]
+ * 
+ */
+    }
+
+    /* "fertilizerprocessor.pyx":19
+ *         total[item] = 0
+ * 
+ *     for item in combined:             # <<<<<<<<<<<<<<
+ *         key = '_'.join(item[0:3])
+ *         if isinstance(item[3], float):
+ */
+  }
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "fertilizerprocessor.pyx":24
+ *             total[key]  += item[3]
+ * 
+ *     return total             # <<<<<<<<<<<<<<
  * 
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  if (!(likely(PyList_CheckExact(__pyx_v_combined))||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "list", Py_TYPE(__pyx_v_combined)->tp_name), 0))) __PYX_ERR(0, 16, __pyx_L1_error)
-  __Pyx_INCREF(__pyx_v_combined);
-  __pyx_r = ((PyObject*)__pyx_v_combined);
+  if (!(likely(PyDict_CheckExact(__pyx_v_total))||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "dict", Py_TYPE(__pyx_v_total)->tp_name), 0))) __PYX_ERR(0, 24, __pyx_L1_error)
+  __Pyx_INCREF(__pyx_v_total);
+  __pyx_r = ((PyObject*)__pyx_v_total);
   goto __pyx_L0;
 
   /* "fertilizerprocessor.pyx":4
  * #cdef before any declaration (cpdef for functions and int/float... in parameters)
  * 
- * cpdef list fertilizerCount(list areas, list items, list value):             # <<<<<<<<<<<<<<
- *     cdef count = dict()
+ * cpdef dict fertilizerCount(list areas, list items, list units, list values):             # <<<<<<<<<<<<<<
+ *     cdef total = dict()
  *     cdef combined = list()
  */
 
@@ -1235,12 +1543,16 @@ static PyObject *__pyx_f_19fertilizerprocessor_fertilizerCount(PyObject *__pyx_v
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_XDECREF(__pyx_t_9);
   __Pyx_AddTraceback("fertilizerprocessor.fertilizerCount", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_count);
+  __Pyx_XDECREF(__pyx_v_total);
   __Pyx_XDECREF(__pyx_v_combined);
-  __Pyx_XDECREF(__pyx_v_a);
+  __Pyx_XDECREF(__pyx_v_item);
+  __Pyx_XDECREF(__pyx_v_key);
+  __Pyx_XDECREF(__pyx_v_row);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -1251,7 +1563,8 @@ static PyObject *__pyx_pw_19fertilizerprocessor_1fertilizerCount(PyObject *__pyx
 static PyObject *__pyx_pw_19fertilizerprocessor_1fertilizerCount(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_areas = 0;
   PyObject *__pyx_v_items = 0;
-  PyObject *__pyx_v_value = 0;
+  PyObject *__pyx_v_units = 0;
+  PyObject *__pyx_v_values = 0;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -1259,12 +1572,14 @@ static PyObject *__pyx_pw_19fertilizerprocessor_1fertilizerCount(PyObject *__pyx
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("fertilizerCount (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_areas,&__pyx_n_s_items,&__pyx_n_s_value,0};
-    PyObject* values[3] = {0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_areas,&__pyx_n_s_items,&__pyx_n_s_units,&__pyx_n_s_values,0};
+    PyObject* values[4] = {0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
         case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
         CYTHON_FALLTHROUGH;
         case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
@@ -1283,32 +1598,40 @@ static PyObject *__pyx_pw_19fertilizerprocessor_1fertilizerCount(PyObject *__pyx
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_items)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fertilizerCount", 1, 3, 3, 1); __PYX_ERR(0, 4, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("fertilizerCount", 1, 4, 4, 1); __PYX_ERR(0, 4, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
-        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_value)) != 0)) kw_args--;
+        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_units)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fertilizerCount", 1, 3, 3, 2); __PYX_ERR(0, 4, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("fertilizerCount", 1, 4, 4, 2); __PYX_ERR(0, 4, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  3:
+        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_values)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("fertilizerCount", 1, 4, 4, 3); __PYX_ERR(0, 4, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
         if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fertilizerCount") < 0)) __PYX_ERR(0, 4, __pyx_L3_error)
       }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
     } else {
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+      values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
     __pyx_v_areas = ((PyObject*)values[0]);
     __pyx_v_items = ((PyObject*)values[1]);
-    __pyx_v_value = ((PyObject*)values[2]);
+    __pyx_v_units = ((PyObject*)values[2]);
+    __pyx_v_values = ((PyObject*)values[3]);
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("fertilizerCount", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("fertilizerCount", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("fertilizerprocessor.fertilizerCount", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -1316,8 +1639,9 @@ static PyObject *__pyx_pw_19fertilizerprocessor_1fertilizerCount(PyObject *__pyx
   __pyx_L4_argument_unpacking_done:;
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_areas), (&PyList_Type), 1, "areas", 1))) __PYX_ERR(0, 4, __pyx_L1_error)
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_items), (&PyList_Type), 1, "items", 1))) __PYX_ERR(0, 4, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_value), (&PyList_Type), 1, "value", 1))) __PYX_ERR(0, 4, __pyx_L1_error)
-  __pyx_r = __pyx_pf_19fertilizerprocessor_fertilizerCount(__pyx_self, __pyx_v_areas, __pyx_v_items, __pyx_v_value);
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_units), (&PyList_Type), 1, "units", 1))) __PYX_ERR(0, 4, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_values), (&PyList_Type), 1, "values", 1))) __PYX_ERR(0, 4, __pyx_L1_error)
+  __pyx_r = __pyx_pf_19fertilizerprocessor_fertilizerCount(__pyx_self, __pyx_v_areas, __pyx_v_items, __pyx_v_units, __pyx_v_values);
 
   /* function exit code */
   goto __pyx_L0;
@@ -1328,7 +1652,7 @@ static PyObject *__pyx_pw_19fertilizerprocessor_1fertilizerCount(PyObject *__pyx
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_19fertilizerprocessor_fertilizerCount(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_areas, PyObject *__pyx_v_items, PyObject *__pyx_v_value) {
+static PyObject *__pyx_pf_19fertilizerprocessor_fertilizerCount(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_areas, PyObject *__pyx_v_items, PyObject *__pyx_v_units, PyObject *__pyx_v_values) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -1337,7 +1661,7 @@ static PyObject *__pyx_pf_19fertilizerprocessor_fertilizerCount(CYTHON_UNUSED Py
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("fertilizerCount", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_19fertilizerprocessor_fertilizerCount(__pyx_v_areas, __pyx_v_items, __pyx_v_value, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_19fertilizerprocessor_fertilizerCount(__pyx_v_areas, __pyx_v_items, __pyx_v_units, __pyx_v_values, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -1401,13 +1725,17 @@ static struct PyModuleDef __pyx_moduledef = {
 #endif
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
+  {&__pyx_n_s_, __pyx_k_, sizeof(__pyx_k_), 0, 0, 1, 1},
   {&__pyx_n_s_areas, __pyx_k_areas, sizeof(__pyx_k_areas), 0, 0, 1, 1},
   {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
   {&__pyx_n_s_items, __pyx_k_items, sizeof(__pyx_k_items), 0, 0, 1, 1},
+  {&__pyx_n_s_join, __pyx_k_join, sizeof(__pyx_k_join), 0, 0, 1, 1},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
   {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
-  {&__pyx_n_s_value, __pyx_k_value, sizeof(__pyx_k_value), 0, 0, 1, 1},
+  {&__pyx_n_s_tonnes, __pyx_k_tonnes, sizeof(__pyx_k_tonnes), 0, 0, 1, 1},
+  {&__pyx_n_s_units, __pyx_k_units, sizeof(__pyx_k_units), 0, 0, 1, 1},
+  {&__pyx_n_s_values, __pyx_k_values, sizeof(__pyx_k_values), 0, 0, 1, 1},
   {&__pyx_n_s_zip, __pyx_k_zip, sizeof(__pyx_k_zip), 0, 0, 1, 1},
   {0, 0, 0, 0, 0, 0, 0}
 };
@@ -1421,12 +1749,28 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
 static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
+
+  /* "fertilizerprocessor.pyx":15
+ *     #total = dict.fromkeys(total, 0)
+ *     for item in combined:
+ *         item = '_'.join(item[0:3])             # <<<<<<<<<<<<<<
+ *         #count[item] = count.get(item,0)+1
+ *         total[item] = 0
+ */
+  __pyx_slice__2 = PySlice_New(__pyx_int_0, __pyx_int_3, Py_None); if (unlikely(!__pyx_slice__2)) __PYX_ERR(0, 15, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_slice__2);
+  __Pyx_GIVEREF(__pyx_slice__2);
   __Pyx_RefNannyFinishContext();
   return 0;
+  __pyx_L1_error:;
+  __Pyx_RefNannyFinishContext();
+  return -1;
 }
 
 static CYTHON_SMALL_CODE int __Pyx_InitGlobals(void) {
   if (__Pyx_InitStrings(__pyx_string_tab) < 0) __PYX_ERR(0, 2, __pyx_L1_error);
+  __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) __PYX_ERR(0, 2, __pyx_L1_error)
+  __pyx_int_3 = PyInt_FromLong(3); if (unlikely(!__pyx_int_3)) __PYX_ERR(0, 2, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
   return -1;
@@ -1702,7 +2046,7 @@ if (!__Pyx_RefNanny) {
  * 
  * #cdef before any declaration (cpdef for functions and int/float... in parameters)             # <<<<<<<<<<<<<<
  * 
- * cpdef list fertilizerCount(list areas, list items, list value):
+ * cpdef dict fertilizerCount(list areas, list items, list units, list values):
  */
   __pyx_t_1 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -1796,6 +2140,375 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg
             "NULL result without error in PyObject_Call");
     }
     return result;
+}
+#endif
+
+/* GetItemInt */
+static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
+    PyObject *r;
+    if (!j) return NULL;
+    r = PyObject_GetItem(o, j);
+    Py_DECREF(j);
+    return r;
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
+                                                              CYTHON_NCP_UNUSED int wraparound,
+                                                              CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    Py_ssize_t wrapped_i = i;
+    if (wraparound & unlikely(i < 0)) {
+        wrapped_i += PyList_GET_SIZE(o);
+    }
+    if ((!boundscheck) || likely(__Pyx_is_valid_index(wrapped_i, PyList_GET_SIZE(o)))) {
+        PyObject *r = PyList_GET_ITEM(o, wrapped_i);
+        Py_INCREF(r);
+        return r;
+    }
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+#else
+    return PySequence_GetItem(o, i);
+#endif
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
+                                                              CYTHON_NCP_UNUSED int wraparound,
+                                                              CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    Py_ssize_t wrapped_i = i;
+    if (wraparound & unlikely(i < 0)) {
+        wrapped_i += PyTuple_GET_SIZE(o);
+    }
+    if ((!boundscheck) || likely(__Pyx_is_valid_index(wrapped_i, PyTuple_GET_SIZE(o)))) {
+        PyObject *r = PyTuple_GET_ITEM(o, wrapped_i);
+        Py_INCREF(r);
+        return r;
+    }
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+#else
+    return PySequence_GetItem(o, i);
+#endif
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, int is_list,
+                                                     CYTHON_NCP_UNUSED int wraparound,
+                                                     CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS && CYTHON_USE_TYPE_SLOTS
+    if (is_list || PyList_CheckExact(o)) {
+        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyList_GET_SIZE(o);
+        if ((!boundscheck) || (likely(__Pyx_is_valid_index(n, PyList_GET_SIZE(o))))) {
+            PyObject *r = PyList_GET_ITEM(o, n);
+            Py_INCREF(r);
+            return r;
+        }
+    }
+    else if (PyTuple_CheckExact(o)) {
+        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyTuple_GET_SIZE(o);
+        if ((!boundscheck) || likely(__Pyx_is_valid_index(n, PyTuple_GET_SIZE(o)))) {
+            PyObject *r = PyTuple_GET_ITEM(o, n);
+            Py_INCREF(r);
+            return r;
+        }
+    } else {
+        PySequenceMethods *m = Py_TYPE(o)->tp_as_sequence;
+        if (likely(m && m->sq_item)) {
+            if (wraparound && unlikely(i < 0) && likely(m->sq_length)) {
+                Py_ssize_t l = m->sq_length(o);
+                if (likely(l >= 0)) {
+                    i += l;
+                } else {
+                    if (!PyErr_ExceptionMatches(PyExc_OverflowError))
+                        return NULL;
+                    PyErr_Clear();
+                }
+            }
+            return m->sq_item(o, i);
+        }
+    }
+#else
+    if (is_list || PySequence_Check(o)) {
+        return PySequence_GetItem(o, i);
+    }
+#endif
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+}
+
+/* BytesEquals */
+static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals) {
+#if CYTHON_COMPILING_IN_PYPY
+    return PyObject_RichCompareBool(s1, s2, equals);
+#else
+    if (s1 == s2) {
+        return (equals == Py_EQ);
+    } else if (PyBytes_CheckExact(s1) & PyBytes_CheckExact(s2)) {
+        const char *ps1, *ps2;
+        Py_ssize_t length = PyBytes_GET_SIZE(s1);
+        if (length != PyBytes_GET_SIZE(s2))
+            return (equals == Py_NE);
+        ps1 = PyBytes_AS_STRING(s1);
+        ps2 = PyBytes_AS_STRING(s2);
+        if (ps1[0] != ps2[0]) {
+            return (equals == Py_NE);
+        } else if (length == 1) {
+            return (equals == Py_EQ);
+        } else {
+            int result;
+#if CYTHON_USE_UNICODE_INTERNALS
+            Py_hash_t hash1, hash2;
+            hash1 = ((PyBytesObject*)s1)->ob_shash;
+            hash2 = ((PyBytesObject*)s2)->ob_shash;
+            if (hash1 != hash2 && hash1 != -1 && hash2 != -1) {
+                return (equals == Py_NE);
+            }
+#endif
+            result = memcmp(ps1, ps2, (size_t)length);
+            return (equals == Py_EQ) ? (result == 0) : (result != 0);
+        }
+    } else if ((s1 == Py_None) & PyBytes_CheckExact(s2)) {
+        return (equals == Py_NE);
+    } else if ((s2 == Py_None) & PyBytes_CheckExact(s1)) {
+        return (equals == Py_NE);
+    } else {
+        int result;
+        PyObject* py_result = PyObject_RichCompare(s1, s2, equals);
+        if (!py_result)
+            return -1;
+        result = __Pyx_PyObject_IsTrue(py_result);
+        Py_DECREF(py_result);
+        return result;
+    }
+#endif
+}
+
+/* UnicodeEquals */
+static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals) {
+#if CYTHON_COMPILING_IN_PYPY
+    return PyObject_RichCompareBool(s1, s2, equals);
+#else
+#if PY_MAJOR_VERSION < 3
+    PyObject* owned_ref = NULL;
+#endif
+    int s1_is_unicode, s2_is_unicode;
+    if (s1 == s2) {
+        goto return_eq;
+    }
+    s1_is_unicode = PyUnicode_CheckExact(s1);
+    s2_is_unicode = PyUnicode_CheckExact(s2);
+#if PY_MAJOR_VERSION < 3
+    if ((s1_is_unicode & (!s2_is_unicode)) && PyString_CheckExact(s2)) {
+        owned_ref = PyUnicode_FromObject(s2);
+        if (unlikely(!owned_ref))
+            return -1;
+        s2 = owned_ref;
+        s2_is_unicode = 1;
+    } else if ((s2_is_unicode & (!s1_is_unicode)) && PyString_CheckExact(s1)) {
+        owned_ref = PyUnicode_FromObject(s1);
+        if (unlikely(!owned_ref))
+            return -1;
+        s1 = owned_ref;
+        s1_is_unicode = 1;
+    } else if (((!s2_is_unicode) & (!s1_is_unicode))) {
+        return __Pyx_PyBytes_Equals(s1, s2, equals);
+    }
+#endif
+    if (s1_is_unicode & s2_is_unicode) {
+        Py_ssize_t length;
+        int kind;
+        void *data1, *data2;
+        if (unlikely(__Pyx_PyUnicode_READY(s1) < 0) || unlikely(__Pyx_PyUnicode_READY(s2) < 0))
+            return -1;
+        length = __Pyx_PyUnicode_GET_LENGTH(s1);
+        if (length != __Pyx_PyUnicode_GET_LENGTH(s2)) {
+            goto return_ne;
+        }
+#if CYTHON_USE_UNICODE_INTERNALS
+        {
+            Py_hash_t hash1, hash2;
+        #if CYTHON_PEP393_ENABLED
+            hash1 = ((PyASCIIObject*)s1)->hash;
+            hash2 = ((PyASCIIObject*)s2)->hash;
+        #else
+            hash1 = ((PyUnicodeObject*)s1)->hash;
+            hash2 = ((PyUnicodeObject*)s2)->hash;
+        #endif
+            if (hash1 != hash2 && hash1 != -1 && hash2 != -1) {
+                goto return_ne;
+            }
+        }
+#endif
+        kind = __Pyx_PyUnicode_KIND(s1);
+        if (kind != __Pyx_PyUnicode_KIND(s2)) {
+            goto return_ne;
+        }
+        data1 = __Pyx_PyUnicode_DATA(s1);
+        data2 = __Pyx_PyUnicode_DATA(s2);
+        if (__Pyx_PyUnicode_READ(kind, data1, 0) != __Pyx_PyUnicode_READ(kind, data2, 0)) {
+            goto return_ne;
+        } else if (length == 1) {
+            goto return_eq;
+        } else {
+            int result = memcmp(data1, data2, (size_t)(length * kind));
+            #if PY_MAJOR_VERSION < 3
+            Py_XDECREF(owned_ref);
+            #endif
+            return (equals == Py_EQ) ? (result == 0) : (result != 0);
+        }
+    } else if ((s1 == Py_None) & s2_is_unicode) {
+        goto return_ne;
+    } else if ((s2 == Py_None) & s1_is_unicode) {
+        goto return_ne;
+    } else {
+        int result;
+        PyObject* py_result = PyObject_RichCompare(s1, s2, equals);
+        #if PY_MAJOR_VERSION < 3
+        Py_XDECREF(owned_ref);
+        #endif
+        if (!py_result)
+            return -1;
+        result = __Pyx_PyObject_IsTrue(py_result);
+        Py_DECREF(py_result);
+        return result;
+    }
+return_eq:
+    #if PY_MAJOR_VERSION < 3
+    Py_XDECREF(owned_ref);
+    #endif
+    return (equals == Py_EQ);
+return_ne:
+    #if PY_MAJOR_VERSION < 3
+    Py_XDECREF(owned_ref);
+    #endif
+    return (equals == Py_NE);
+#endif
+}
+
+/* StringJoin */
+#if !CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyBytes_Join(PyObject* sep, PyObject* values) {
+    return PyObject_CallMethodObjArgs(sep, __pyx_n_s_join, values, NULL);
+}
+#endif
+
+/* SliceObject */
+static CYTHON_INLINE PyObject* __Pyx_PyObject_GetSlice(PyObject* obj,
+        Py_ssize_t cstart, Py_ssize_t cstop,
+        PyObject** _py_start, PyObject** _py_stop, PyObject** _py_slice,
+        int has_cstart, int has_cstop, CYTHON_UNUSED int wraparound) {
+#if CYTHON_USE_TYPE_SLOTS
+    PyMappingMethods* mp;
+#if PY_MAJOR_VERSION < 3
+    PySequenceMethods* ms = Py_TYPE(obj)->tp_as_sequence;
+    if (likely(ms && ms->sq_slice)) {
+        if (!has_cstart) {
+            if (_py_start && (*_py_start != Py_None)) {
+                cstart = __Pyx_PyIndex_AsSsize_t(*_py_start);
+                if ((cstart == (Py_ssize_t)-1) && PyErr_Occurred()) goto bad;
+            } else
+                cstart = 0;
+        }
+        if (!has_cstop) {
+            if (_py_stop && (*_py_stop != Py_None)) {
+                cstop = __Pyx_PyIndex_AsSsize_t(*_py_stop);
+                if ((cstop == (Py_ssize_t)-1) && PyErr_Occurred()) goto bad;
+            } else
+                cstop = PY_SSIZE_T_MAX;
+        }
+        if (wraparound && unlikely((cstart < 0) | (cstop < 0)) && likely(ms->sq_length)) {
+            Py_ssize_t l = ms->sq_length(obj);
+            if (likely(l >= 0)) {
+                if (cstop < 0) {
+                    cstop += l;
+                    if (cstop < 0) cstop = 0;
+                }
+                if (cstart < 0) {
+                    cstart += l;
+                    if (cstart < 0) cstart = 0;
+                }
+            } else {
+                if (!PyErr_ExceptionMatches(PyExc_OverflowError))
+                    goto bad;
+                PyErr_Clear();
+            }
+        }
+        return ms->sq_slice(obj, cstart, cstop);
+    }
+#endif
+    mp = Py_TYPE(obj)->tp_as_mapping;
+    if (likely(mp && mp->mp_subscript))
+#endif
+    {
+        PyObject* result;
+        PyObject *py_slice, *py_start, *py_stop;
+        if (_py_slice) {
+            py_slice = *_py_slice;
+        } else {
+            PyObject* owned_start = NULL;
+            PyObject* owned_stop = NULL;
+            if (_py_start) {
+                py_start = *_py_start;
+            } else {
+                if (has_cstart) {
+                    owned_start = py_start = PyInt_FromSsize_t(cstart);
+                    if (unlikely(!py_start)) goto bad;
+                } else
+                    py_start = Py_None;
+            }
+            if (_py_stop) {
+                py_stop = *_py_stop;
+            } else {
+                if (has_cstop) {
+                    owned_stop = py_stop = PyInt_FromSsize_t(cstop);
+                    if (unlikely(!py_stop)) {
+                        Py_XDECREF(owned_start);
+                        goto bad;
+                    }
+                } else
+                    py_stop = Py_None;
+            }
+            py_slice = PySlice_New(py_start, py_stop, Py_None);
+            Py_XDECREF(owned_start);
+            Py_XDECREF(owned_stop);
+            if (unlikely(!py_slice)) goto bad;
+        }
+#if CYTHON_USE_TYPE_SLOTS
+        result = mp->mp_subscript(obj, py_slice);
+#else
+        result = PyObject_GetItem(obj, py_slice);
+#endif
+        if (!_py_slice) {
+            Py_DECREF(py_slice);
+        }
+        return result;
+    }
+    PyErr_Format(PyExc_TypeError,
+        "'%.200s' object is unsliceable", Py_TYPE(obj)->tp_name);
+bad:
+    return NULL;
+}
+
+/* ObjectGetItem */
+#if CYTHON_USE_TYPE_SLOTS
+static PyObject *__Pyx_PyObject_GetIndex(PyObject *obj, PyObject* index) {
+    PyObject *runerr;
+    Py_ssize_t key_value;
+    PySequenceMethods *m = Py_TYPE(obj)->tp_as_sequence;
+    if (unlikely(!(m && m->sq_item))) {
+        PyErr_Format(PyExc_TypeError, "'%.200s' object is not subscriptable", Py_TYPE(obj)->tp_name);
+        return NULL;
+    }
+    key_value = __Pyx_PyIndex_AsSsize_t(index);
+    if (likely(key_value != -1 || !(runerr = PyErr_Occurred()))) {
+        return __Pyx_GetItemInt_Fast(obj, key_value, 0, 1, 1);
+    }
+    if (PyErr_GivenExceptionMatches(runerr, PyExc_OverflowError)) {
+        PyErr_Clear();
+        PyErr_Format(PyExc_IndexError, "cannot fit '%.200s' into an index-sized integer", Py_TYPE(index)->tp_name);
+    }
+    return NULL;
+}
+static PyObject *__Pyx_PyObject_GetItem(PyObject *obj, PyObject* key) {
+    PyMappingMethods *m = Py_TYPE(obj)->tp_as_mapping;
+    if (likely(m && m->mp_subscript)) {
+        return m->mp_subscript(obj, key);
+    }
+    return __Pyx_PyObject_GetIndex(obj, key);
 }
 #endif
 
