@@ -44,4 +44,4 @@ Running the notebook will output three figures and one table.
 
 ## License
 
-This project is licensed under the [Creative Commons Zero](https://creativecommons.org/share-your-work/public-domain/cc0/) - see the LICENSE.md for more details.
+This project is licensed under the [Creative Commons Zero](https://creativecommons.org/share-your-work/public-domain/cc0/) license - see the LICENSE.md file for more details.
